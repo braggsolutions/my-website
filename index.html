@@ -147,4 +147,16 @@
             const heightLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             heightLabel.setAttribute('x', -50);
             heightLabel.setAttribute('y', scaledHeight / 2);
-            heightLabel.set
+            heightLabel.setAttribute('transform', `rotate(-90, -50, ${scaledHeight / 2})`);
+            heightLabel.textContent = `Height: ${height}`;
+            svg.appendChild(heightLabel);
+
+            const hypLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            hypLabel.setAttribute('x', scaledBase / 2);
+            hypLabel.setAttribute('y', scaledHeight / 2);
+            hypLabel.textContent = `Hyp: ${hypotenuse.toFixed(2)}`;
+            svg.appendChild(hypLabel);
+        }
+    </script>
+</body>
+</html>
