@@ -1,9 +1,18 @@
 const express = require('express');
+const path = require('path');
+const { Pool } = require('pg');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.static(__dirname));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database connection
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mydb',
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
 
 // Simulated Grok API call function
 function grokMathOperation(num1, num2, operation, apiKey) {
@@ -69,6 +78,23 @@ app.post('/api/math', (req, res) => {
     }
 });
 
+// Endpoint to handle user info submission
+app.post('/submit', async (req, res) => {
+    const { name, age } = req.body;
+    try {
+        await pool.query('INSERT INTO users (name, age) VALUES ($1, $2)', [name, age]);
+        res.send('Data saved successfully!');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error saving data');
+    }
+});
+
+// Serve index.html for root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running on port ${port}`);
 });

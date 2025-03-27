@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math and Triangle Calculator</title>
+    <title>Math, Triangle, and User Info Calculator</title>
     <style>
         .input-group {
             margin: 10px 0;
@@ -28,6 +28,17 @@
 </head>
 <body>
     <div class="section">
+        <h2>User Info Submission</h2>
+        <div class="input-group">
+            <label>Name: <input type="text" id="name" required></label>
+            <label>Age: <input type="number" id="age" min="1" required></label>
+        </div>
+        <div class="input-group">
+            <button onclick="submitUserInfo()">Submit Info</button>
+        </div>
+    </div>
+
+    <div class="section">
         <h2>Basic Math Calculator</h2>
         <div class="input-group">
             <label>Number 1: <input type="number" id="num1"></label>
@@ -48,13 +59,37 @@
         <div class="input-group">
             <button onclick="calculateTriangle()">Calculate Hypotenuse</button>
         </div>
-        <svg id="triangle" width="200" height="200"></svg>
+        <svg id="triangle" width="200" height="200" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
 
     <textarea id="result" readonly></textarea>
 
     <script>
-        const apiKey = "xai-kBLhWmpnWsnQiBBxIMtK6JsdPmoMIvo2vNazmAeVuhCKjZ7QkTmuEbOjuWOj0geyYuiMUrnjR0iKjDKK";
+        async function submitUserInfo() {
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+
+            if (!name || !age) {
+                document.getElementById('result').value = 'Please enter both name and age';
+                return;
+            }
+
+            try {
+                const response = await fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `name=${encodeURIComponent(name)}&age=${encodeURIComponent(age)}`
+                });
+
+                const text = await response.text();
+                document.getElementById('result').value = text;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').value = 'Error submitting info';
+            }
+        }
 
         async function calculate(operation) {
             const num1 = document.getElementById('num1').value;
@@ -65,50 +100,24 @@
                 return;
             }
 
-            await performCalculation(num1, num2, operation);
+            const result = operation === 'add' 
+                ? parseFloat(num1) + parseFloat(num2) 
+                : parseFloat(num1) * parseFloat(num2);
+            document.getElementById('result').value = `Result: ${result}`;
         }
 
         async function calculateTriangle() {
-            const base = document.getElementById('base').value;
-            const height = document.getElementById('height').value;
+            const base = parseFloat(document.getElementById('base').value);
+            const height = parseFloat(document.getElementById('height').value);
             
             if (!base || !height) {
                 document.getElementById('result').value = 'Please enter base and height';
                 return;
             }
 
-            const response = await performCalculation(base, height, 'hypotenuse');
-            if (response && response.result) {
-                drawTriangle(parseFloat(base), parseFloat(height), response.result);
-            }
-        }
-
-        async function performCalculation(num1, num2, operation) {
-            const requestBody = {
-                num1,
-                num2,
-                operation,
-                apiKey
-            };
-
-            try {
-                const response = await fetch('/api/math', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                const data = await response.json();
-                const assistantMessage = data.messages.find(msg => msg.role === "assistant");
-                document.getElementById('result').value = assistantMessage.content;
-                return data; // Return data for triangle drawing
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('result').value = 'Error performing calculation';
-                return null;
-            }
+            const hypotenuse = Math.sqrt(base * base + height * height);
+            document.getElementById('result').value = `Hypotenuse: ${hypotenuse.toFixed(2)}`;
+            drawTriangle(base, height, hypotenuse);
         }
 
         function drawTriangle(base, height, hypotenuse) {
@@ -138,16 +147,4 @@
             const heightLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             heightLabel.setAttribute('x', -50);
             heightLabel.setAttribute('y', scaledHeight / 2);
-            heightLabel.setAttribute('transform', `rotate(-90, -50, ${scaledHeight / 2})`);
-            heightLabel.textContent = `Height: ${height}`;
-            svg.appendChild(heightLabel);
-
-            const hypLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            hypLabel.setAttribute('x', scaledBase / 2);
-            hypLabel.setAttribute('y', scaledHeight / 2);
-            hypLabel.textContent = `Hyp: ${hypotenuse.toFixed(2)}`;
-            svg.appendChild(hypLabel);
-        }
-    </script>
-</body>
-</html>
+            heightLabel.set
