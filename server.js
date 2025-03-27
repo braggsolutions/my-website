@@ -14,6 +14,22 @@ const pool = new Pool({
     ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
+// Create users table if it doesn’t exist
+async function setupDatabase() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                age INTEGER NOT NULL
+            )
+        `);
+        console.log('Users table ready');
+    } catch (err) {
+        console.error('Error setting up database:', err);
+    }
+}
+
 // Simulated Grok API call function
 function grokMathOperation(num1, num2, operation, apiKey) {
     const validApiKey = "xai-kBLhWmpnWsnQiBBxIMtK6JsdPmoMIvo2vNazmAeVuhCKjZ7QkTmuEbOjuWOj0geyYuiMUrnjR0iKjDKK";
@@ -56,7 +72,7 @@ function grokMathOperation(num1, num2, operation, apiKey) {
         model: "grok-2-latest",
         stream: false,
         temperature: 0,
-        result: result // Added for triangle drawing
+        result: result
     };
 }
 
@@ -95,6 +111,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(port, () => {
+// Start server and setup database
+app.listen(port, async () => {
     console.log(`Server running on port ${port}`);
+    await setupDatabase();
 });
