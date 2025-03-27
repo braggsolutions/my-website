@@ -106,6 +106,23 @@ app.post('/submit', async (req, res) => {
     }
 });
 
+// Endpoint to search user by name
+app.post('/search', async (req, res) => {
+    const { name } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE name = $1 LIMIT 1', [name]);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            res.send(`Found: Name: ${user.name}, Age: ${user.age}`);
+        } else {
+            res.send(`No user found with name: ${name}`);
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error searching database');
+    }
+});
+
 // Serve index.html for root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
